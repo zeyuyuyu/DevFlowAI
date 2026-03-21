@@ -3,15 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevFlowAI - Smart Development Assistant</title>
+    <title>DevFlowAI Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #6366f1;
-            --secondary: #818cf8;
-            --dark: #1e1b4b;
-            --light: #f8fafc;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -20,9 +14,8 @@
         }
 
         body {
-            background: var(--dark);
-            color: var(--light);
-            min-height: 100vh;
+            background: #0f172a;
+            color: #e2e8f0;
         }
 
         .container {
@@ -40,24 +33,25 @@
 
         .logo {
             font-size: 2rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            font-weight: 600;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: float 3s ease-in-out infinite;
+            animation: glow 2s ease-in-out infinite alternate;
         }
 
-        .dashboard {
+        .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 1rem;
             padding: 1.5rem;
             backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: transform 0.3s ease;
         }
 
@@ -65,66 +59,53 @@
             transform: translateY(-5px);
         }
 
-        .input-container {
-            position: relative;
-            margin-top: 2rem;
+        .card h2 {
+            margin-bottom: 1rem;
+            color: #94a3b8;
         }
 
-        .input {
-            width: 100%;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid var(--primary);
-            border-radius: 0.5rem;
-            color: var(--light);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .input:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
-        }
-
-        .submit-btn {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: var(--light);
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-        }
-
-        .submit-btn:hover {
-            transform: scale(1.05);
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .stats {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            flex: 1;
-            text-align: center;
-        }
-
-        .stat-value {
+        .metric {
             font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary);
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .chart {
+            width: 100%;
+            height: 200px;
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-bar {
+            position: absolute;
+            bottom: 0;
+            width: 8%;
+            background: linear-gradient(to top, #6366f1, #8b5cf6);
+            border-radius: 4px 4px 0 0;
+            transition: height 1s ease;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+            }
+            to {
+                text-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
+            }
+        }
+
+        .progress-ring {
+            width: 120px;
+            height: 120px;
+        }
+
+        .progress-ring circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
         }
     </style>
 </head>
@@ -132,59 +113,78 @@
     <div class="container">
         <header class="header">
             <div class="logo">DevFlowAI</div>
-            <nav>
-                <button class="submit-btn">Connect GitHub</button>
-            </nav>
+            <div class="user-info">Welcome back, Developer!</div>
         </header>
 
-        <div class="dashboard">
+        <div class="dashboard-grid">
             <div class="card">
-                <h2>AI Assistant</h2>
-                <div class="input-container">
-                    <input type="text" class="input" placeholder="Ask DevFlowAI anything...">
-                    <button class="submit-btn">Ask AI</button>
-                </div>
+                <h2>Code Analysis</h2>
+                <div class="metric">98%</div>
+                <p>Code Quality Score</p>
+                <svg class="progress-ring" viewBox="0 0 120 120">
+                    <circle cx="60" cy="60" r="54" fill="none" stroke="#1e293b" stroke-width="12"/>
+                    <circle class="progress" cx="60" cy="60" r="54" fill="none" stroke="#6366f1" stroke-width="12" stroke-dasharray="339.292" stroke-dashoffset="6.78584"/>
+                </svg>
             </div>
 
             <div class="card">
-                <h2>Project Analytics</h2>
-                <div class="stats">
-                    <div class="stat-card">
-                        <div class="stat-value">42</div>
-                        <div class="stat-label">Commits Today</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">89%</div>
-                        <div class="stat-label">Code Quality</div>
-                    </div>
-                </div>
+                <h2>Performance Metrics</h2>
+                <div class="metric">1.2s</div>
+                <p>Average Response Time</p>
+                <div class="chart" id="performanceChart"></div>
+            </div>
+
+            <div class="card">
+                <h2>AI Suggestions</h2>
+                <div class="metric">12</div>
+                <p>Optimization Opportunities</p>
+                <ul id="suggestions"></ul>
             </div>
         </div>
     </div>
 
     <script>
-        document.querySelector('.input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const input = this.value;
-                // Add your API call here
-                console.log('Sending to AI:', input);
-                this.value = '';
+        // Animate performance chart
+        function initPerformanceChart() {
+            const chart = document.getElementById('performanceChart');
+            for (let i = 0; i < 12; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                bar.style.left = `${i * 8.33}%`;
+                bar.style.height = `${Math.random() * 100}%`;
+                chart.appendChild(bar);
             }
-        });
+        }
 
-        // Add floating animation to cards
-        document.querySelectorAll('.card').forEach(card => {
-            card.style.animationDelay = Math.random() * 2 + 's';
-        });
-
-        // Add interactive stats update
-        setInterval(() => {
-            document.querySelectorAll('.stat-value').forEach(stat => {
-                const currentValue = parseInt(stat.textContent);
-                const newValue = currentValue + Math.floor(Math.random() * 5) - 2;
-                stat.textContent = Math.max(0, newValue);
+        // Add sample suggestions
+        function addSuggestions() {
+            const suggestions = [
+                'Optimize database queries',
+                'Implement caching layer',
+                'Refactor authentication flow'
+            ];
+            const ul = document.getElementById('suggestions');
+            suggestions.forEach(suggestion => {
+                const li = document.createElement('li');
+                li.textContent = suggestion;
+                li.style.marginBottom = '0.5rem';
+                li.style.color = '#94a3b8';
+                ul.appendChild(li);
             });
-        }, 5000);
+        }
+
+        // Initialize animations
+        window.addEventListener('load', () => {
+            initPerformanceChart();
+            addSuggestions();
+
+            // Animate chart bars periodically
+            setInterval(() => {
+                document.querySelectorAll('.chart-bar').forEach(bar => {
+                    bar.style.height = `${Math.random() * 100}%`;
+                });
+            }, 3000);
+        });
     </script>
 </body>
 </html>
