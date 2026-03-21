@@ -3,19 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevFlowAI Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <title>Scraper Swarm Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #6200ee;
+            --secondary: #03dac6;
+            --background: #121212;
+            --surface: #1e1e1e;
+            --text: #ffffff;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
         }
 
         body {
-            background: #0f172a;
-            color: #e2e8f0;
+            font-family: 'Roboto', sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
         }
 
         .container {
@@ -24,34 +33,17 @@
             padding: 2rem;
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        .logo {
-            font-size: 2rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        .dashboard-grid {
+        .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
+            gap: 2rem;
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 1rem;
+            background: var(--surface);
+            border-radius: 16px;
             padding: 1.5rem;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease;
         }
 
@@ -59,125 +51,183 @@
             transform: translateY(-5px);
         }
 
-        .card h2 {
-            margin-bottom: 1rem;
-            font-size: 1.25rem;
-            color: #8b5cf6;
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
         }
 
-        .metric {
-            font-size: 2.5rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
+        .stat-item {
+            text-align: center;
         }
 
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 500;
+            color: var(--secondary);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .swarm-visualizer {
+            position: relative;
+            height: 300px;
+            background: var(--surface);
+            border-radius: 16px;
             overflow: hidden;
-        }
-
-        .progress {
-            height: 100%;
-            background: linear-gradient(90deg, #6366f1, #8b5cf6);
-            width: 75%;
-            animation: progress 1.5s ease-out;
-        }
-
-        @keyframes glow {
-            0% { opacity: 0.8; }
-            100% { opacity: 1; }
-        }
-
-        @keyframes progress {
-            from { width: 0; }
-        }
-
-        .achievements {
             margin-top: 2rem;
         }
 
-        .achievement-badge {
-            display: inline-flex;
-            align-items: center;
-            background: rgba(99, 102, 241, 0.1);
-            padding: 0.5rem 1rem;
-            border-radius: 2rem;
-            margin: 0.5rem;
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .node {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--secondary);
+            border-radius: 50%;
+            transition: all 0.5s ease;
         }
 
-        .achievement-badge:hover {
-            background: rgba(99, 102, 241, 0.2);
-            transform: scale(1.05);
+        .connection {
+            position: absolute;
+            height: 1px;
+            background: rgba(3, 218, 198, 0.3);
+            transform-origin: left center;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <div class="logo">DevFlowAI</div>
-            <div class="user-profile">👤 Welcome, Developer!</div>
-        </header>
-
-        <div class="dashboard-grid">
+        <h1>Decentralized Scraper Swarm</h1>
+        <div class="dashboard">
             <div class="card">
-                <h2>Code Quality Score</h2>
-                <div class="metric">92</div>
-                <div class="progress-bar">
-                    <div class="progress"></div>
+                <h2>Active Scrapers</h2>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="activeScrapers">0</div>
+                        <div class="stat-label">Online</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="tasksCompleted">0</div>
+                        <div class="stat-label">Tasks Completed</div>
+                    </div>
                 </div>
             </div>
-
             <div class="card">
-                <h2>AI Suggestions</h2>
-                <div class="metric">24</div>
-                <p>New optimization opportunities</p>
-            </div>
-
-            <div class="card">
-                <h2>Developer Productivity</h2>
-                <div class="metric">↑ 28%</div>
-                <p>Improved from last week</p>
+                <h2>Network Status</h2>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="networkHealth">98%</div>
+                        <div class="stat-label">Health</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="networkLatency">45ms</div>
+                        <div class="stat-label">Latency</div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="achievements">
-            <h2>Your Achievements</h2>
-            <div class="achievement-badges">
-                <div class="achievement-badge">🚀 Speed Optimizer</div>
-                <div class="achievement-badge">🎯 Code Quality Master</div>
-                <div class="achievement-badge">🌟 Top Contributor</div>
-            </div>
-        </div>
+        <div class="swarm-visualizer" id="visualizer"></div>
     </div>
 
     <script>
-        // Add interactive features
-        document.querySelectorAll('.achievement-badge').forEach(badge => {
-            badge.addEventListener('click', () => {
-                badge.style.transform = 'scale(1.1)';
-                setTimeout(() => badge.style.transform = 'scale(1)', 200);
-            });
-        });
+class SwarmVisualizer {
+    constructor(container) {
+        this.container = container;
+        this.nodes = [];
+        this.connections = [];
+        this.init();
+    }
 
-        // Simulate real-time updates
-        setInterval(() => {
-            const metrics = document.querySelectorAll('.metric');
-            metrics.forEach(metric => {
-                if (Math.random() > 0.7) {
-                    const currentValue = parseInt(metric.textContent);
-                    const newValue = currentValue + Math.floor(Math.random() * 5) - 2;
-                    metric.textContent = newValue;
-                    metric.style.color = newValue > currentValue ? '#4ade80' : '#ef4444';
-                    setTimeout(() => metric.style.color = '#e2e8f0', 1000);
-                }
-            });
-        }, 3000);
+    init() {
+        this.createNodes(10);
+        this.createConnections();
+        this.animate();
+        setInterval(() => this.updateStats(), 2000);
+    }
+
+    createNodes(count) {
+        for (let i = 0; i < count; i++) {
+            const node = document.createElement('div');
+            node.className = 'node';
+            node.style.left = `${Math.random() * 100}%`;
+            node.style.top = `${Math.random() * 100}%`;
+            this.container.appendChild(node);
+            this.nodes.push(node);
+        }
+    }
+
+    createConnections() {
+        for (let i = 0; i < this.nodes.length; i++) {
+            for (let j = i + 1; j < this.nodes.length; j++) {
+                if (Math.random() > 0.5) continue;
+                const connection = document.createElement('div');
+                connection.className = 'connection';
+                this.container.appendChild(connection);
+                this.connections.push({
+                    element: connection,
+                    from: this.nodes[i],
+                    to: this.nodes[j]
+                });
+            }
+        }
+    }
+
+    updateConnections() {
+        this.connections.forEach(conn => {
+            const rect1 = conn.from.getBoundingClientRect();
+            const rect2 = conn.to.getBoundingClientRect();
+            const x1 = rect1.left + rect1.width / 2;
+            const y1 = rect1.top + rect1.height / 2;
+            const x2 = rect2.left + rect2.width / 2;
+            const y2 = rect2.top + rect2.height / 2;
+            const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            conn.element.style.width = `${length}px`;
+            conn.element.style.left = `${x1}px`;
+            conn.element.style.top = `${y1}px`;
+            conn.element.style.transform = `rotate(${angle}rad)`;
+        });
+    }
+
+    animate() {
+        this.nodes.forEach(node => {
+            const moveNode = () => {
+                const newX = Math.random() * 100;
+                const newY = Math.random() * 100;
+                node.style.left = `${newX}%`;
+                node.style.top = `${newY}%`;
+                node.style.animation = 'pulse 1s';
+                setTimeout(() => node.style.animation = '', 1000);
+            };
+            setInterval(moveNode, 5000 + Math.random() * 5000);
+        });
+        setInterval(() => this.updateConnections(), 100);
+    }
+
+    updateStats() {
+        document.getElementById('activeScrapers').textContent = 
+            Math.floor(Math.random() * 20 + 80);
+        document.getElementById('tasksCompleted').textContent = 
+            Math.floor(Math.random() * 1000 + 5000);
+        document.getElementById('networkHealth').textContent = 
+            `${Math.floor(Math.random() * 5 + 95)}%`;
+        document.getElementById('networkLatency').textContent = 
+            `${Math.floor(Math.random() * 20 + 35)}ms`;
+    }
+}
+
+window.addEventListener('load', () => {
+    new SwarmVisualizer(document.getElementById('visualizer'));
+});
     </script>
 </body>
 </html>
