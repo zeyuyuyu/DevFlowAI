@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DevFlowAI Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -28,26 +28,25 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
         }
 
         .logo {
             font-size: 2rem;
             font-weight: 600;
-            background: linear-gradient(45deg, #60a5fa, #a855f7);
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             animation: glow 2s ease-in-out infinite alternate;
         }
 
-        .stats-grid {
+        .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
-            margin-bottom: 3rem;
         }
 
-        .stat-card {
+        .card {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 1rem;
             padding: 1.5rem;
@@ -56,19 +55,20 @@
             transition: transform 0.3s ease;
         }
 
-        .stat-card:hover {
+        .card:hover {
             transform: translateY(-5px);
         }
 
-        .stat-title {
-            font-size: 0.875rem;
-            color: #94a3b8;
-            margin-bottom: 0.5rem;
+        .card h2 {
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            color: #8b5cf6;
         }
 
-        .stat-value {
-            font-size: 1.5rem;
+        .metric {
+            font-size: 2.5rem;
             font-weight: 600;
+            margin-bottom: 0.5rem;
         }
 
         .progress-bar {
@@ -76,132 +76,108 @@
             height: 6px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 3px;
-            margin-top: 1rem;
             overflow: hidden;
         }
 
-        .progress-fill {
+        .progress {
             height: 100%;
-            background: linear-gradient(90deg, #60a5fa, #a855f7);
-            width: 0%;
-            transition: width 1s ease;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            width: 75%;
+            animation: progress 1.5s ease-out;
         }
 
         @keyframes glow {
-            from {
-                text-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
-            }
-            to {
-                text-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
-            }
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes progress {
+            from { width: 0; }
         }
 
         .achievements {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
             margin-top: 2rem;
         }
 
-        .achievement {
-            text-align: center;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 0.5rem;
+        .achievement-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            margin: 0.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .achievement:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .achievement-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
+        .achievement-badge:hover {
+            background: rgba(99, 102, 241, 0.2);
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <h1 class="logo">DevFlowAI</h1>
-            <div id="score">Score: 0</div>
+            <div class="logo">DevFlowAI</div>
+            <div class="user-profile">👤 Welcome, Developer!</div>
         </header>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-title">Code Quality Score</div>
-                <div class="stat-value">92%</div>
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>Code Quality Score</h2>
+                <div class="metric">92</div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 92%"></div>
+                    <div class="progress"></div>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-title">Tasks Completed</div>
-                <div class="stat-value">24/30</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 80%"></div>
-                </div>
+
+            <div class="card">
+                <h2>AI Suggestions</h2>
+                <div class="metric">24</div>
+                <p>New optimization opportunities</p>
             </div>
-            <div class="stat-card">
-                <div class="stat-title">Productivity Level</div>
-                <div class="stat-value">High</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 85%"></div>
-                </div>
+
+            <div class="card">
+                <h2>Developer Productivity</h2>
+                <div class="metric">↑ 28%</div>
+                <p>Improved from last week</p>
             </div>
         </div>
 
         <div class="achievements">
-            <div class="achievement" onclick="unlockAchievement(this)">
-                <div class="achievement-icon">🏆</div>
-                <div>Code Master</div>
-            </div>
-            <div class="achievement" onclick="unlockAchievement(this)">
-                <div class="achievement-icon">⚡</div>
-                <div>Speed Demon</div>
-            </div>
-            <div class="achievement" onclick="unlockAchievement(this)">
-                <div class="achievement-icon">🎯</div>
-                <div>Bug Hunter</div>
-            </div>
-            <div class="achievement" onclick="unlockAchievement(this)">
-                <div class="achievement-icon">🚀</div>
-                <div>Innovation Star</div>
+            <h2>Your Achievements</h2>
+            <div class="achievement-badges">
+                <div class="achievement-badge">🚀 Speed Optimizer</div>
+                <div class="achievement-badge">🎯 Code Quality Master</div>
+                <div class="achievement-badge">🌟 Top Contributor</div>
             </div>
         </div>
     </div>
 
     <script>
-        let score = 0;
-        const scoreElement = document.getElementById('score');
-
-        function unlockAchievement(element) {
-            if (!element.classList.contains('unlocked')) {
-                element.style.background = 'rgba(96, 165, 250, 0.2)';
-                element.classList.add('unlocked');
-                score += 100;
-                scoreElement.textContent = `Score: ${score}`;
-                
-                element.style.transform = 'scale(1.1)';
-                setTimeout(() => {
-                    element.style.transform = 'scale(1)';
-                }, 200);
-            }
-        }
-
-        // Animate progress bars on load
-        window.onload = function() {
-            const bars = document.querySelectorAll('.progress-fill');
-            bars.forEach(bar => {
-                const width = bar.style.width;
-                bar.style.width = '0%';
-                setTimeout(() => {
-                    bar.style.width = width;
-                }, 300);
+        // Add interactive features
+        document.querySelectorAll('.achievement-badge').forEach(badge => {
+            badge.addEventListener('click', () => {
+                badge.style.transform = 'scale(1.1)';
+                setTimeout(() => badge.style.transform = 'scale(1)', 200);
             });
-        }
+        });
+
+        // Simulate real-time updates
+        setInterval(() => {
+            const metrics = document.querySelectorAll('.metric');
+            metrics.forEach(metric => {
+                if (Math.random() > 0.7) {
+                    const currentValue = parseInt(metric.textContent);
+                    const newValue = currentValue + Math.floor(Math.random() * 5) - 2;
+                    metric.textContent = newValue;
+                    metric.style.color = newValue > currentValue ? '#4ade80' : '#ef4444';
+                    setTimeout(() => metric.style.color = '#e2e8f0', 1000);
+                }
+            });
+        }, 3000);
     </script>
 </body>
 </html>
