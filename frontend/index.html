@@ -3,19 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevFlowAI Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>SwarmOS Dashboard</title>
     <style>
+        :root {
+            --primary: #00ff9d;
+            --dark: #1a1a1a;
+            --light: #f0f0f0;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
         body {
-            background: #0f172a;
-            color: #e2e8f0;
+            background: var(--dark);
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .container {
@@ -24,7 +31,7 @@
             padding: 2rem;
         }
 
-        .header {
+        header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -33,158 +40,151 @@
 
         .logo {
             font-size: 2rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: glow 2s ease-in-out infinite alternate;
+            font-weight: bold;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
 
-        .dashboard-grid {
+        .logo svg {
+            width: 40px;
+            height: 40px;
+            animation: rotate 4s linear infinite;
+        }
+
+        .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 1rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
             padding: 1.5rem;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: transform 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
 
         .card:hover {
             transform: translateY(-5px);
         }
 
-        .card h2 {
-            margin-bottom: 1rem;
-            color: #94a3b8;
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(0,255,157,0.1));
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
+        }
+
+        .card:hover::before {
+            transform: translateX(0);
         }
 
         .metric {
-            font-size: 2rem;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin: 1rem 0;
         }
 
         .chart {
             width: 100%;
-            height: 200px;
+            height: 150px;
             margin-top: 1rem;
             position: relative;
             overflow: hidden;
         }
 
-        .chart-bar {
-            position: absolute;
-            bottom: 0;
-            width: 8%;
-            background: linear-gradient(to top, #6366f1, #8b5cf6);
-            border-radius: 4px 4px 0 0;
-            transition: height 1s ease;
+        .chart-line {
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 2;
+            animation: drawLine 2s ease forwards;
         }
 
-        @keyframes glow {
-            from {
-                text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
-            }
-            to {
-                text-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
-            }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
-        .progress-ring {
-            width: 120px;
-            height: 120px;
-        }
-
-        .progress-ring circle {
-            transition: stroke-dashoffset 0.35s;
-            transform: rotate(-90deg);
-            transform-origin: 50% 50%;
+        @keyframes drawLine {
+            from { stroke-dashoffset: 1000; }
+            to { stroke-dashoffset: 0; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <div class="logo">DevFlowAI</div>
-            <div class="user-info">Welcome back, Developer!</div>
+        <header>
+            <a href="#" class="logo">
+                <svg viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+                </svg>
+                SwarmOS
+            </a>
         </header>
 
-        <div class="dashboard-grid">
+        <div class="grid">
             <div class="card">
-                <h2>Code Analysis</h2>
-                <div class="metric">98%</div>
-                <p>Code Quality Score</p>
-                <svg class="progress-ring" viewBox="0 0 120 120">
-                    <circle cx="60" cy="60" r="54" fill="none" stroke="#1e293b" stroke-width="12"/>
-                    <circle class="progress" cx="60" cy="60" r="54" fill="none" stroke="#6366f1" stroke-width="12" stroke-dasharray="339.292" stroke-dashoffset="6.78584"/>
-                </svg>
+                <h3>Active Agents</h3>
+                <div class="metric">247</div>
+                <div class="chart">
+                    <svg viewBox="0 0 300 150">
+                        <path class="chart-line" d="M0,75 C100,25 200,125 300,75"/>
+                    </svg>
+                </div>
             </div>
 
             <div class="card">
-                <h2>Performance Metrics</h2>
-                <div class="metric">1.2s</div>
-                <p>Average Response Time</p>
-                <div class="chart" id="performanceChart"></div>
+                <h3>System Load</h3>
+                <div class="metric">42%</div>
+                <div class="chart">
+                    <svg viewBox="0 0 300 150">
+                        <path class="chart-line" d="M0,125 C100,75 200,100 300,25"/>
+                    </svg>
+                </div>
             </div>
 
             <div class="card">
-                <h2>AI Suggestions</h2>
-                <div class="metric">12</div>
-                <p>Optimization Opportunities</p>
-                <ul id="suggestions"></ul>
+                <h3>Network Status</h3>
+                <div class="metric">Optimal</div>
+                <div class="chart">
+                    <svg viewBox="0 0 300 150">
+                        <path class="chart-line" d="M0,50 C100,50 200,50 300,50"/>
+                    </svg>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Animate performance chart
-        function initPerformanceChart() {
-            const chart = document.getElementById('performanceChart');
-            for (let i = 0; i < 12; i++) {
-                const bar = document.createElement('div');
-                bar.className = 'chart-bar';
-                bar.style.left = `${i * 8.33}%`;
-                bar.style.height = `${Math.random() * 100}%`;
-                chart.appendChild(bar);
-            }
-        }
-
-        // Add sample suggestions
-        function addSuggestions() {
-            const suggestions = [
-                'Optimize database queries',
-                'Implement caching layer',
-                'Refactor authentication flow'
-            ];
-            const ul = document.getElementById('suggestions');
-            suggestions.forEach(suggestion => {
-                const li = document.createElement('li');
-                li.textContent = suggestion;
-                li.style.marginBottom = '0.5rem';
-                li.style.color = '#94a3b8';
-                ul.appendChild(li);
+        // Add interactive functionality
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', () => {
+                card.style.transform = 'scale(1.02)';
+                setTimeout(() => card.style.transform = '', 200);
             });
-        }
-
-        // Initialize animations
-        window.addEventListener('load', () => {
-            initPerformanceChart();
-            addSuggestions();
-
-            // Animate chart bars periodically
-            setInterval(() => {
-                document.querySelectorAll('.chart-bar').forEach(bar => {
-                    bar.style.height = `${Math.random() * 100}%`;
-                });
-            }, 3000);
         });
+
+        // Simulate real-time updates
+        setInterval(() => {
+            document.querySelectorAll('.metric').forEach(metric => {
+                if (metric.parentElement.querySelector('h3').textContent === 'Active Agents') {
+                    metric.textContent = Math.floor(Math.random() * 100 + 200);
+                } else if (metric.parentElement.querySelector('h3').textContent === 'System Load') {
+                    metric.textContent = Math.floor(Math.random() * 60 + 20) + '%';
+                }
+            });
+        }, 3000);
     </script>
 </body>
 </html>
