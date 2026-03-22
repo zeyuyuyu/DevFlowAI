@@ -1,110 +1,144 @@
-import logging
-import numpy as np
+import asyncio
 from typing import Dict, List, Optional
 from dataclasses import dataclass
-from sklearn.ensemble import RandomForestClassifier
+from enum import Enum
+import hashlib
+import time
+
+class ConsensusState(Enum):
+    PROPOSED = 'PROPOSED'
+    VALIDATING = 'VALIDATING'
+    COMMITTED = 'COMMITTED'
+    REJECTED = 'REJECTED'
 
 @dataclass
-class CodeQualityMetrics:
-    complexity: float
-    test_coverage: float
-    duplication: float
-    bug_density: float
-    security_score: float
+class ProposalBlock:
+    id: str
+    timestamp: float
+    data: Dict
+    previous_hash: str
+    proposer: str
+    signatures: List[str] = None
+    state: ConsensusState = ConsensusState.PROPOSED
 
 class DecentralizedGovernanceOrchestrator:
-    def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        self._quality_model = self._initialize_quality_model()
-        self._quality_thresholds = {
-            'critical': 0.8,
-            'high': 0.6,
-            'medium': 0.4,
-            'low': 0.2
-        }
+    def __init__(self, node_id: str, min_validators: int = 3):
+        self.node_id = node_id
+        self.min_validators = min_validators
+        self.proposals: Dict[str, ProposalBlock] = {}
+        self.chain: List[ProposalBlock] = []
+        self.peers: Dict[str, 'Node'] = {}
+        self.validation_threshold = 0.67  # 2/3 majority
 
-    def _initialize_quality_model(self) -> RandomForestClassifier:
-        """Initialize ML model for quality severity classification"""
-        model = RandomForestClassifier(n_estimators=100)
-        # Pre-trained weights could be loaded here
-        return model
-
-    def analyze_code_quality(self, metrics: CodeQualityMetrics) -> Dict[str, any]:
-        """Analyze code quality metrics and determine governance actions"""
-        features = np.array([
-            metrics.complexity,
-            metrics.test_coverage,
-            metrics.duplication,
-            metrics.bug_density,
-            metrics.security_score
-        ]).reshape(1, -1)
-
-        severity_score = self._quality_model.predict_proba(features)[0]
-        severity_level = self._classify_severity(severity_score)
-
-        governance_actions = self._determine_governance_actions(severity_level)
-
-        return {
-            'severity_level': severity_level,
-            'severity_score': float(severity_score.max()),
-            'governance_actions': governance_actions,
-            'metrics': metrics.__dict__
-        }
-
-    def _classify_severity(self, severity_score: np.ndarray) -> str:
-        """Classify severity level based on model prediction"""
-        max_score = severity_score.max()
+    async def propose_change(self, data: Dict) -> str:
+        """Propose a new change to the network"""
+        block = ProposalBlock(
+            id=self._generate_id(),
+            timestamp=time.time(),
+            data=data,
+            previous_hash=self._get_last_hash(),
+            proposer=self.node_id,
+            signatures=[]
+        )
         
-        if max_score >= self._quality_thresholds['critical']:
-            return 'critical'
-        elif max_score >= self._quality_thresholds['high']:
-            return 'high'
-        elif max_score >= self._quality_thresholds['medium']:
-            return 'medium'
-        return 'low'
+        self.proposals[block.id] = block
+        await self._broadcast_proposal(block)
+        return block.id
 
-    def _determine_governance_actions(self, severity: str) -> List[str]:
-        """Determine required governance actions based on severity"""
-        actions = {
-            'critical': [
-                'block_merge',
-                'notify_team',
-                'schedule_review',
-                'require_fixes'
-            ],
-            'high': [
-                'require_review',
-                'notify_owner',
-                'suggest_fixes'
-            ],
-            'medium': [
-                'flag_for_review',
-                'suggest_improvements'
-            ],
-            'low': [
-                'log_metrics'
-            ]
-        }
-        return actions.get(severity, [])
+    async def validate_proposal(self, proposal_id: str, validator_id: str) -> bool:
+        """Validate a proposal using adaptive validation rules"""
+        if proposal_id not in self.proposals:
+            return False
 
-    def update_quality_model(self, training_data: List[Dict]):
-        """Update the quality classification model with new training data"""
+        block = self.proposals[proposal_id]
+        
+        # Implement adaptive validation based on proposal type
+        is_valid = await self._run_validation_checks(block)
+        
+        if is_valid:
+            block.signatures.append(validator_id)
+            
+            # Check if we have enough signatures
+            if len(block.signatures) >= self._calculate_required_validators():
+                await self._commit_proposal(block)
+                
+        return is_valid
+
+    async def _commit_proposal(self, block: ProposalBlock) -> None:
+        """Commit a validated proposal to the chain"""
+        block.state = ConsensusState.COMMITTED
+        self.chain.append(block)
+        await self._broadcast_commit(block)
+
+    def _calculate_required_validators(self) -> int:
+        """Dynamically calculate required validators based on network size"""
+        total_peers = len(self.peers)
+        return max(self.min_validators, int(total_peers * self.validation_threshold))
+
+    async def _run_validation_checks(self, block: ProposalBlock) -> bool:
+        """Run comprehensive validation checks on a proposal"""
+        if not self._verify_hash_chain(block):
+            return False
+
+        if not self._verify_timestamps(block):
+            return False
+
+        return await self._verify_proposal_data(block)
+
+    def _verify_hash_chain(self, block: ProposalBlock) -> bool:
+        """Verify the integrity of the hash chain"""
+        if not self.chain:  # Genesis block
+            return block.previous_hash == '0' * 64
+
+        return block.previous_hash == self._get_last_hash()
+
+    def _verify_timestamps(self, block: ProposalBlock) -> bool:
+        """Verify temporal consistency"""
+        if not self.chain:
+            return True
+
+        return block.timestamp > self.chain[-1].timestamp
+
+    async def _verify_proposal_data(self, block: ProposalBlock) -> bool:
+        """Verify proposal data integrity and compliance"""
         try:
-            X = np.array([list(d['metrics'].values()) for d in training_data])
-            y = np.array([d['severity_level'] for d in training_data])
-            self._quality_model.fit(X, y)
-            self.logger.info('Successfully updated quality classification model')
-        except Exception as e:
-            self.logger.error(f'Failed to update quality model: {str(e)}')
+            # Add custom validation logic here based on proposal type
+            return True
+        except Exception:
+            return False
 
-    def adjust_thresholds(self, new_thresholds: Dict[str, float]):
-        """Adjust severity classification thresholds"""
-        for level, threshold in new_thresholds.items():
-            if level in self._quality_thresholds:
-                self._quality_thresholds[level] = threshold
+    def _get_last_hash(self) -> str:
+        """Get hash of the last block in the chain"""
+        if not self.chain:
+            return '0' * 64
         
-        self.logger.info('Updated severity classification thresholds')
+        last_block = self.chain[-1]
+        return self._calculate_hash(last_block)
 
-    def get_current_thresholds(self) -> Dict[str, float]:
-        """Get current severity classification thresholds"""
-        return self._quality_thresholds.copy()
+    def _calculate_hash(self, block: ProposalBlock) -> str:
+        """Calculate cryptographic hash of a block"""
+        block_data = f"{block.id}{block.timestamp}{block.data}{block.previous_hash}{block.proposer}"
+        return hashlib.sha256(block_data.encode()).hexdigest()
+
+    def _generate_id(self) -> str:
+        """Generate unique proposal ID"""
+        return hashlib.sha256(f"{self.node_id}{time.time()}".encode()).hexdigest()[:12]
+
+    async def _broadcast_proposal(self, block: ProposalBlock) -> None:
+        """Broadcast new proposal to all peers"""
+        for peer in self.peers.values():
+            await peer.receive_proposal(block)
+
+    async def _broadcast_commit(self, block: ProposalBlock) -> None:
+        """Broadcast committed proposal to all peers"""
+        for peer in self.peers.values():
+            await peer.receive_commit(block)
+
+    def get_chain_status(self) -> Dict:
+        """Get current status of the governance chain"""
+        return {
+            'chain_length': len(self.chain),
+            'pending_proposals': len(self.proposals),
+            'last_hash': self._get_last_hash(),
+            'active_peers': len(self.peers)
+        }
