@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SwarmOS Dashboard</title>
+    <title>DevFlowAI Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #00ff9d;
-            --dark: #1a1a1a;
-            --light: #f0f0f0;
+            --primary: #6366f1;
+            --secondary: #4f46e5;
+            --bg: #0f172a;
+            --text: #e2e8f0;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
         body {
-            background: var(--dark);
-            color: var(--light);
-            min-height: 100vh;
-            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
         }
 
         .container {
@@ -31,7 +31,7 @@
             padding: 2rem;
         }
 
-        header {
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -40,151 +40,157 @@
 
         .logo {
             font-size: 2rem;
-            font-weight: bold;
-            color: var(--primary);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 2s ease-in-out infinite alternate;
         }
 
-        .logo svg {
-            width: 40px;
-            height: 40px;
-            animation: rotate 4s linear infinite;
-        }
-
-        .grid {
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
         }
 
-        .card {
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
             padding: 1.5rem;
             transition: transform 0.3s ease;
             cursor: pointer;
-            position: relative;
-            overflow: hidden;
         }
 
-        .card:hover {
+        .stat-card:hover {
             transform: translateY(-5px);
         }
 
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, transparent, rgba(0,255,157,0.1));
-            transform: translateX(-100%);
-            transition: transform 0.5s ease;
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
         }
 
-        .card:hover::before {
-            transform: translateX(0);
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
         }
 
-        .metric {
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin: 1rem 0;
+        .activity-feed {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 2rem;
         }
 
-        .chart {
-            width: 100%;
-            height: 150px;
-            margin-top: 1rem;
-            position: relative;
-            overflow: hidden;
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideIn 0.5s ease-out;
         }
 
-        .chart-line {
-            fill: none;
-            stroke: var(--primary);
-            stroke-width: 2;
-            animation: drawLine 2s ease forwards;
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
         }
 
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px var(--primary);
+            }
+            to {
+                text-shadow: 0 0 20px var(--primary);
+            }
         }
 
-        @keyframes drawLine {
-            from { stroke-dashoffset: 1000; }
-            to { stroke-dashoffset: 0; }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <a href="#" class="logo">
-                <svg viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
-                </svg>
-                SwarmOS
-            </a>
+        <header class="header">
+            <h1 class="logo">DevFlowAI</h1>
+            <div id="user-score">Score: 1250 XP</div>
         </header>
 
-        <div class="grid">
-            <div class="card">
-                <h3>Active Agents</h3>
-                <div class="metric">247</div>
-                <div class="chart">
-                    <svg viewBox="0 0 300 150">
-                        <path class="chart-line" d="M0,75 C100,25 200,125 300,75"/>
-                    </svg>
-                </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">89%</div>
+                <div class="stat-label">Code Quality Score</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-value">124</div>
+                <div class="stat-label">Tasks Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">12</div>
+                <div class="stat-label">Active Projects</div>
+            </div>
+        </div>
 
-            <div class="card">
-                <h3>System Load</h3>
-                <div class="metric">42%</div>
-                <div class="chart">
-                    <svg viewBox="0 0 300 150">
-                        <path class="chart-line" d="M0,125 C100,75 200,100 300,25"/>
-                    </svg>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>Network Status</h3>
-                <div class="metric">Optimal</div>
-                <div class="chart">
-                    <svg viewBox="0 0 300 150">
-                        <path class="chart-line" d="M0,50 C100,50 200,50 300,50"/>
-                    </svg>
-                </div>
-            </div>
+        <div class="activity-feed">
+            <h2>Recent Activity</h2>
+            <div id="activity-list"></div>
         </div>
     </div>
 
     <script>
-        // Add interactive functionality
-        document.querySelectorAll('.card').forEach(card => {
+        // Simulated activity data
+        const activities = [
+            { type: '✨', text: 'New feature implemented in UserAuth module' },
+            { type: '🐛', text: 'Fixed critical bug in data processing' },
+            { type: '📊', text: 'Performance optimization complete' },
+            { type: '🔄', text: 'Code refactoring session completed' }
+        ];
+
+        // Populate activity feed with animation delay
+        const activityList = document.getElementById('activity-list');
+        activities.forEach((activity, index) => {
+            setTimeout(() => {
+                const div = document.createElement('div');
+                div.className = 'activity-item';
+                div.innerHTML = `
+                    <div class="activity-icon">${activity.type}</div>
+                    <div>${activity.text}</div>
+                `;
+                activityList.appendChild(div);
+            }, index * 500);
+        });
+
+        // Gamification: Update score randomly
+        setInterval(() => {
+            const score = document.getElementById('user-score');
+            const currentScore = parseInt(score.textContent.match(/\d+/)[0]);
+            const newScore = currentScore + Math.floor(Math.random() * 10);
+            score.textContent = `Score: ${newScore} XP`;
+            score.style.animation = 'glow 0.5s ease-out';
+            setTimeout(() => score.style.animation = '', 500);
+        }, 5000);
+
+        // Interactive stats cards
+        document.querySelectorAll('.stat-card').forEach(card => {
             card.addEventListener('click', () => {
-                card.style.transform = 'scale(1.02)';
+                card.style.transform = 'scale(1.1)';
                 setTimeout(() => card.style.transform = '', 200);
             });
         });
-
-        // Simulate real-time updates
-        setInterval(() => {
-            document.querySelectorAll('.metric').forEach(metric => {
-                if (metric.parentElement.querySelector('h3').textContent === 'Active Agents') {
-                    metric.textContent = Math.floor(Math.random() * 100 + 200);
-                } else if (metric.parentElement.querySelector('h3').textContent === 'System Load') {
-                    metric.textContent = Math.floor(Math.random() * 60 + 20) + '%';
-                }
-            });
-        }, 3000);
     </script>
 </body>
 </html>
