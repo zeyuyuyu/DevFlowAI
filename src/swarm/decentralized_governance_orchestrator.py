@@ -1,112 +1,124 @@
 import asyncio
 from dataclasses import dataclass
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
+import logging
 from datetime import datetime
-import random
 
 @dataclass
-class Reviewer:
-    id: str
-    expertise: List[str]
-    current_workload: int
-    availability: float  # 0.0 to 1.0
-    last_review: datetime
+class NodeHealth:
+    cpu_usage: float
+    memory_usage: float
+    last_heartbeat: datetime
+    active_tasks: int
 
 @dataclass
-class CodeReview:
+class Task:
     id: str
-    files: List[str]
-    complexity: float
-    required_expertise: List[str]
     priority: int
+    resource_requirements: Dict[str, float]
+    assigned_node: Optional[str] = None
 
 class DecentralizedGovernanceOrchestrator:
     def __init__(self):
-        self.reviewers: Dict[str, Reviewer] = {}
-        self.pending_reviews: List[CodeReview] = []
-        self.review_assignments: Dict[str, str] = {}  # review_id -> reviewer_id
-        self.MAX_WORKLOAD = 5
+        self.nodes: Dict[str, NodeHealth] = {}
+        self.tasks: List[Task] = []
+        self.health_check_interval = 30  # seconds
+        self.logger = logging.getLogger(__name__)
 
-    async def register_reviewer(self, reviewer: Reviewer) -> None:
-        self.reviewers[reviewer.id] = reviewer
+    async def register_node(self, node_id: str, initial_health: NodeHealth):
+        """Register a new node in the swarm"""
+        self.nodes[node_id] = initial_health
+        self.logger.info(f"Node {node_id} registered with initial health: {initial_health}")
 
-    async def submit_review(self, review: CodeReview) -> None:
-        self.pending_reviews.append(review)
-        await self._process_review_queue()
+    async def update_node_health(self, node_id: str, health: NodeHealth):
+        """Update health metrics for a node"""
+        if node_id in self.nodes:
+            self.nodes[node_id] = health
+            await self._check_rebalancing_needed(node_id)
 
-    def calculate_reviewer_score(self, reviewer: Reviewer, review: CodeReview) -> float:
-        # Calculate match score between reviewer and review
-        expertise_match = len(set(reviewer.expertise) & set(review.required_expertise))
-        workload_factor = 1.0 - (reviewer.current_workload / self.MAX_WORKLOAD)
-        time_since_last_review = (datetime.now() - reviewer.last_review).total_seconds() / 3600
-        time_factor = min(1.0, time_since_last_review / 24)
+    async def _check_rebalancing_needed(self, node_id: str):
+        """Check if workload rebalancing is needed based on node health"""
+        node = self.nodes[node_id]
+        
+        # Define health thresholds
+        CPU_THRESHOLD = 80.0
+        MEMORY_THRESHOLD = 85.0
 
-        return (
-            expertise_match * 0.5 +
-            workload_factor * 0.3 +
-            reviewer.availability * 0.1 +
-            time_factor * 0.1
-        )
+        if node.cpu_usage > CPU_THRESHOLD or node.memory_usage > MEMORY_THRESHOLD:
+            await self._rebalance_workload(node_id)
 
-    async def _process_review_queue(self) -> None:
-        if not self.pending_reviews:
+    async def _rebalance_workload(self, overloaded_node_id: str):
+        """Redistribute tasks from overloaded node to healthier nodes"""
+        tasks_to_move = [t for t in self.tasks if t.assigned_node == overloaded_node_id]
+        healthy_nodes = [
+            (node_id, health) 
+            for node_id, health in self.nodes.items()
+            if health.cpu_usage < 70 and health.memory_usage < 75
+        ]
+
+        if not healthy_nodes:
+            self.logger.warning("No healthy nodes available for rebalancing")
             return
 
-        # Sort reviews by priority
-        self.pending_reviews.sort(key=lambda x: x.priority, reverse=True)
+        for task in tasks_to_move:
+            # Find best node for task based on current load
+            best_node = min(healthy_nodes, key=lambda x: x[1].cpu_usage)
+            task.assigned_node = best_node[0]
+            self.logger.info(
+                f"Rebalancing: Moving task {task.id} from {overloaded_node_id} "
+                f"to {best_node[0]}"
+            )
 
-        for review in self.pending_reviews[:]:
-            best_reviewer = None
-            best_score = -1
+    async def health_monitor_loop(self):
+        """Continuous health monitoring loop"""
+        while True:
+            try:
+                # Check for inactive nodes
+                current_time = datetime.now()
+                inactive_nodes = [
+                    node_id for node_id, health in self.nodes.items()
+                    if (current_time - health.last_heartbeat).seconds > 60
+                ]
 
-            for reviewer in self.reviewers.values():
-                if reviewer.current_workload >= self.MAX_WORKLOAD:
-                    continue
+                # Remove inactive nodes and reassign their tasks
+                for node_id in inactive_nodes:
+                    self.logger.warning(f"Node {node_id} appears to be inactive, removing")
+                    del self.nodes[node_id]
+                    await self._reassign_tasks_from_node(node_id)
 
-                score = self.calculate_reviewer_score(reviewer, review)
-                if score > best_score:
-                    best_score = score
-                    best_reviewer = reviewer
+                await asyncio.sleep(self.health_check_interval)
 
-            if best_reviewer and best_score > 0.3:  # Minimum score threshold
-                best_reviewer.current_workload += 1
-                best_reviewer.last_review = datetime.now()
-                self.review_assignments[review.id] = best_reviewer.id
-                self.pending_reviews.remove(review)
-                await self._notify_reviewer(best_reviewer.id, review)
+            except Exception as e:
+                self.logger.error(f"Error in health monitor loop: {e}")
+                await asyncio.sleep(5)  # Brief pause before retry
 
-    async def _notify_reviewer(self, reviewer_id: str, review: CodeReview) -> None:
-        # Placeholder for notification system
-        print(f"Assigned review {review.id} to reviewer {reviewer_id}")
+    async def _reassign_tasks_from_node(self, failed_node_id: str):
+        """Reassign tasks from a failed node to other healthy nodes"""
+        orphaned_tasks = [t for t in self.tasks if t.assigned_node == failed_node_id]
+        
+        if not orphaned_tasks:
+            return
 
-    async def complete_review(self, review_id: str, reviewer_id: str) -> None:
-        if review_id in self.review_assignments:
-            if self.review_assignments[review_id] == reviewer_id:
-                self.reviewers[reviewer_id].current_workload -= 1
-                del self.review_assignments[review_id]
-                await self._process_review_queue()
+        available_nodes = list(self.nodes.items())
+        if not available_nodes:
+            self.logger.error("No available nodes to reassign tasks")
+            return
 
-    async def get_reviewer_stats(self) -> Dict[str, Dict]:
-        return {
-            reviewer_id: {
-                'current_workload': reviewer.current_workload,
-                'availability': reviewer.availability,
-                'expertise': reviewer.expertise
-            }
-            for reviewer_id, reviewer in self.reviewers.items()
-        }
+        # Sort tasks by priority
+        orphaned_tasks.sort(key=lambda x: x.priority, reverse=True)
 
-    async def rebalance_workload(self) -> None:
-        # Periodically rebalance workload across reviewers
-        overloaded = [r for r in self.reviewers.values() if r.current_workload > (self.MAX_WORKLOAD * 0.8)]
-        underloaded = [r for r in self.reviewers.values() if r.current_workload < (self.MAX_WORKLOAD * 0.2)]
+        for task in orphaned_tasks:
+            # Find least loaded node
+            best_node = min(available_nodes, key=lambda x: x[1].active_tasks)
+            task.assigned_node = best_node[0]
+            self.logger.info(
+                f"Reassigned task {task.id} from failed node {failed_node_id} "
+                f"to {best_node[0]}"
+            )
 
-        for over_reviewer in overloaded:
-            for review_id, reviewer_id in self.review_assignments.items():
-                if reviewer_id == over_reviewer.id:
-                    for under_reviewer in underloaded:
-                        if self.calculate_reviewer_score(under_reviewer, self.pending_reviews[0]) > 0.5:
-                            self.review_assignments[review_id] = under_reviewer.id
-                            over_reviewer.current_workload -= 1
-                            under_reviewer.current_workload += 1
-                            break
+    async def start(self):
+        """Start the orchestrator"""
+        self.logger.info("Starting Decentralized Governance Orchestrator")
+        await asyncio.gather(
+            self.health_monitor_loop()
+        )
