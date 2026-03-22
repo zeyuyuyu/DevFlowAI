@@ -3,26 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevFlowAI - Smart Development Assistant</title>
+    <title>DiffGuardian - Smart Diff Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #6366f1;
             --secondary: #4f46e5;
-            --dark: #1e1b4b;
-            --light: #f5f5f5;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --background: #f8fafc;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, var(--dark), #2d2b5f);
-            color: var(--light);
-            min-height: 100vh;
+            background: var(--background);
+            color: #1e293b;
         }
 
         .container {
@@ -33,170 +34,181 @@
 
         .header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 3rem;
+            justify-content: space-between;
+            margin-bottom: 2rem;
         }
 
         .logo {
-            font-size: 2rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, var(--primary), #a5b4fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-        .card h2 {
-            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            font-weight: 600;
             color: var(--primary);
         }
 
-        .stats {
+        .logo svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .diff-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+        }
+
+        .diff-header {
+            padding: 1rem;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .diff-content {
+            padding: 1rem;
+        }
+
+        .diff-line {
             display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
+            padding: 0.25rem 0;
+            font-family: monospace;
+            transition: background 0.2s;
         }
 
-        .stat {
+        .diff-line:hover {
+            background: #f8fafc;
+        }
+
+        .line-number {
+            color: #94a3b8;
+            padding: 0 1rem;
+            user-select: none;
+        }
+
+        .line-content {
             flex: 1;
-            text-align: center;
-            padding: 0.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 0.5rem;
         }
 
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            margin-top: 1rem;
+        .addition {
+            background: #dcfce7;
         }
 
-        .progress {
-            width: 0%;
-            height: 100%;
-            background: var(--primary);
-            border-radius: 3px;
-            transition: width 1s ease;
+        .deletion {
+            background: #fee2e2;
         }
 
-        @keyframes glow {
-            from {
-                text-shadow: 0 0 10px var(--primary);
-            }
-            to {
-                text-shadow: 0 0 20px var(--primary);
-            }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
 
-        .btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            transition: transform 0.2s;
         }
 
-        .btn:hover {
-            background: var(--secondary);
-            transform: scale(1.05);
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-title {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <div class="logo">DevFlowAI</div>
-            <button class="btn">Connect Repository</button>
+            <div class="logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 4v16m-8-8h16" stroke-linecap="round"/>
+                </svg>
+                DiffGuardian
+            </div>
         </header>
 
-        <main class="dashboard">
-            <div class="card">
-                <h2>Project Health</h2>
-                <div class="progress-bar">
-                    <div class="progress" id="healthProgress"></div>
-                </div>
-                <div class="stats">
-                    <div class="stat">
-                        <div>92%</div>
-                        <small>Code Quality</small>
-                    </div>
-                    <div class="stat">
-                        <div>87%</div>
-                        <small>Test Coverage</small>
-                    </div>
-                </div>
+        <div class="stats">
+            <div class="stat-card pulse">
+                <div class="stat-title">Files Analyzed</div>
+                <div class="stat-value">128</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-title">Lines Changed</div>
+                <div class="stat-value">1,234</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Issues Found</div>
+                <div class="stat-value">7</div>
+            </div>
+        </div>
 
-            <div class="card">
-                <h2>AI Suggestions</h2>
-                <ul id="suggestions" style="list-style: none;">
-                    <li style="margin-bottom: 1rem;">✨ Optimize database queries for better performance</li>
-                    <li style="margin-bottom: 1rem;">🔒 Add input validation to user forms</li>
-                    <li>🚀 Consider implementing caching strategy</li>
-                </ul>
+        <div class="diff-container">
+            <div class="diff-header">
+                <strong>main.py</strong> - Last updated 2 hours ago
             </div>
-
-            <div class="card">
-                <h2>Development Score</h2>
-                <div style="font-size: 3rem; text-align: center; margin: 1rem 0;">
-                    785
+            <div class="diff-content">
+                <div class="diff-line">
+                    <span class="line-number">1</span>
+                    <span class="line-content">def analyze_diff(file_path):</span>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress" id="scoreProgress"></div>
+                <div class="diff-line addition">
+                    <span class="line-number">2</span>
+                    <span class="line-content">    # New optimization added</span>
+                </div>
+                <div class="diff-line addition">
+                    <span class="line-number">3</span>
+                    <span class="line-content">    cache = {}</span>
+                </div>
+                <div class="diff-line deletion">
+                    <span class="line-number">4</span>
+                    <span class="line-content">    # Old implementation removed</span>
                 </div>
             </div>
-        </main>
+        </div>
     </div>
 
     <script>
-        // Animate progress bars
-        setTimeout(() => {
-            document.getElementById('healthProgress').style.width = '92%';
-            document.getElementById('scoreProgress').style.width = '78.5%';
-        }, 500);
-
-        // Add some interactivity
-        document.querySelectorAll('.card').forEach(card => {
-            card.addEventListener('click', () => {
-                card.style.transform = 'scale(1.02)';
-                setTimeout(() => card.style.transform = '', 200);
+        // Add interactive features
+        document.querySelectorAll('.diff-line').forEach(line => {
+            line.addEventListener('click', () => {
+                line.style.backgroundColor = '#e0e7ff';
+                setTimeout(() => {
+                    line.style.backgroundColor = '';
+                }, 1000);
             });
         });
 
-        // Gamification: Random score updates
+        // Update stats periodically
         setInterval(() => {
-            const score = Math.floor(Math.random() * 20) - 10;
-            const currentScore = parseInt(document.querySelector('.card:last-child div').textContent);
-            document.querySelector('.card:last-child div').textContent = currentScore + score;
-            
-            // Animate score change
-            document.querySelector('.card:last-child').style.transform = 'scale(1.05)';
-            setTimeout(() => {
-                document.querySelector('.card:last-child').style.transform = '';
-            }, 200);
+            document.querySelectorAll('.stat-value').forEach(stat => {
+                const current = parseInt(stat.textContent.replace(/,/g, ''));
+                stat.textContent = (current + Math.floor(Math.random() * 10)).toLocaleString();
+            });
         }, 5000);
     </script>
 </body>
