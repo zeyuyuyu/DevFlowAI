@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Swarm OS Dashboard</title>
+    <title>DevFlowAI - Smart Development Assistant</title>
     <style>
         :root {
-            --primary: #00ff9d;
-            --dark: #1a1a1a;
+            --primary: #6366f1;
+            --secondary: #4f46e5;
+            --dark: #1e1b4b;
             --light: #f5f5f5;
         }
         
@@ -15,11 +16,11 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
         body {
-            background: var(--dark);
+            background: linear-gradient(135deg, var(--dark), #2d2b5f);
             color: var(--light);
             min-height: 100vh;
         }
@@ -31,174 +32,172 @@
         }
 
         .header {
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 3rem;
         }
 
-        .header h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(45deg, var(--primary), #00ffff);
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary), #a5b4fc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             animation: glow 2s ease-in-out infinite alternate;
         }
 
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-top: 1rem;
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 1s ease;
+        }
+
         @keyframes glow {
             from {
-                text-shadow: 0 0 10px rgba(0,255,157,0.2);
+                text-shadow: 0 0 10px var(--primary);
             }
             to {
-                text-shadow: 0 0 20px rgba(0,255,157,0.4);
+                text-shadow: 0 0 20px var(--primary);
             }
         }
 
-        .swarm-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .swarm-node {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .swarm-node:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,255,157,0.2);
-        }
-
-        .node-status {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
+        .btn {
             background: var(--primary);
-            animation: pulse 2s infinite;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            50% {
-                transform: scale(1.5);
-                opacity: 0.5;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .metrics {
-            margin-top: 2rem;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .metric-card {
-            background: rgba(255,255,255,0.05);
-            padding: 1rem;
-            border-radius: 10px;
-            text-align: center;
-            flex: 1;
-            margin: 0 1rem;
-        }
-
-        .metric-value {
-            font-size: 2rem;
-            color: var(--primary);
-            margin: 0.5rem 0;
+        .btn:hover {
+            background: var(--secondary);
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Swarm OS Dashboard</h1>
-            <p>Decentralized Coordination Platform</p>
-        </div>
+        <header class="header">
+            <div class="logo">DevFlowAI</div>
+            <button class="btn">Connect Repository</button>
+        </header>
 
-        <div class="metrics">
-            <div class="metric-card">
-                <h3>Active Nodes</h3>
-                <div class="metric-value" id="activeNodes">0</div>
+        <main class="dashboard">
+            <div class="card">
+                <h2>Project Health</h2>
+                <div class="progress-bar">
+                    <div class="progress" id="healthProgress"></div>
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <div>92%</div>
+                        <small>Code Quality</small>
+                    </div>
+                    <div class="stat">
+                        <div>87%</div>
+                        <small>Test Coverage</small>
+                    </div>
+                </div>
             </div>
-            <div class="metric-card">
-                <h3>Tasks Completed</h3>
-                <div class="metric-value" id="tasksCompleted">0</div>
-            </div>
-            <div class="metric-card">
-                <h3>Network Health</h3>
-                <div class="metric-value" id="networkHealth">100%</div>
-            </div>
-        </div>
 
-        <div class="swarm-grid" id="swarmGrid"></div>
+            <div class="card">
+                <h2>AI Suggestions</h2>
+                <ul id="suggestions" style="list-style: none;">
+                    <li style="margin-bottom: 1rem;">✨ Optimize database queries for better performance</li>
+                    <li style="margin-bottom: 1rem;">🔒 Add input validation to user forms</li>
+                    <li>🚀 Consider implementing caching strategy</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2>Development Score</h2>
+                <div style="font-size: 3rem; text-align: center; margin: 1rem 0;">
+                    785
+                </div>
+                <div class="progress-bar">
+                    <div class="progress" id="scoreProgress"></div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script>
-        // Simulated swarm node data
-        const nodes = [];
-        let tasksCompleted = 0;
+        // Animate progress bars
+        setTimeout(() => {
+            document.getElementById('healthProgress').style.width = '92%';
+            document.getElementById('scoreProgress').style.width = '78.5%';
+        }, 500);
 
-        function createNode(id) {
-            return {
-                id,
-                status: 'active',
-                tasks: Math.floor(Math.random() * 100),
-                uptime: Math.floor(Math.random() * 1000)
-            };
-        }
-
-        function updateMetrics() {
-            document.getElementById('activeNodes').textContent = nodes.length;
-            document.getElementById('tasksCompleted').textContent = tasksCompleted;
-            document.getElementById('networkHealth').textContent = 
-                Math.floor(90 + Math.random() * 10) + '%';
-        }
-
-        function renderNodes() {
-            const grid = document.getElementById('swarmGrid');
-            grid.innerHTML = '';
-
-            nodes.forEach(node => {
-                const nodeEl = document.createElement('div');
-                nodeEl.className = 'swarm-node';
-                nodeEl.innerHTML = `
-                    <div class="node-status"></div>
-                    <h3>Node ${node.id}</h3>
-                    <p>Tasks: ${node.tasks}</p>
-                    <p>Uptime: ${node.uptime}s</p>
-                `;
-                grid.appendChild(nodeEl);
+        // Add some interactivity
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', () => {
+                card.style.transform = 'scale(1.02)';
+                setTimeout(() => card.style.transform = '', 200);
             });
-        }
+        });
 
-        // Simulate node creation and updates
+        // Gamification: Random score updates
         setInterval(() => {
-            if (nodes.length < 12) {
-                nodes.push(createNode(nodes.length + 1));
-            }
-            tasksCompleted += Math.floor(Math.random() * 5);
-            updateMetrics();
-            renderNodes();
-        }, 2000);
-
-        // Initial render
-        updateMetrics();
-        renderNodes();
+            const score = Math.floor(Math.random() * 20) - 10;
+            const currentScore = parseInt(document.querySelector('.card:last-child div').textContent);
+            document.querySelector('.card:last-child div').textContent = currentScore + score;
+            
+            // Animate score change
+            document.querySelector('.card:last-child').style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                document.querySelector('.card:last-child').style.transform = '';
+            }, 200);
+        }, 5000);
     </script>
 </body>
 </html>
