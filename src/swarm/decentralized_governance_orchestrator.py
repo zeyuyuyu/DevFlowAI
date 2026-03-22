@@ -1,124 +1,110 @@
-import asyncio
-from dataclasses import dataclass
-from typing import Dict, List, Optional
 import logging
-from datetime import datetime
+import numpy as np
+from typing import Dict, List, Optional
+from dataclasses import dataclass
+from sklearn.ensemble import RandomForestClassifier
 
 @dataclass
-class NodeHealth:
-    cpu_usage: float
-    memory_usage: float
-    last_heartbeat: datetime
-    active_tasks: int
-
-@dataclass
-class Task:
-    id: str
-    priority: int
-    resource_requirements: Dict[str, float]
-    assigned_node: Optional[str] = None
+class CodeQualityMetrics:
+    complexity: float
+    test_coverage: float
+    duplication: float
+    bug_density: float
+    security_score: float
 
 class DecentralizedGovernanceOrchestrator:
     def __init__(self):
-        self.nodes: Dict[str, NodeHealth] = {}
-        self.tasks: List[Task] = []
-        self.health_check_interval = 30  # seconds
         self.logger = logging.getLogger(__name__)
+        self._quality_model = self._initialize_quality_model()
+        self._quality_thresholds = {
+            'critical': 0.8,
+            'high': 0.6,
+            'medium': 0.4,
+            'low': 0.2
+        }
 
-    async def register_node(self, node_id: str, initial_health: NodeHealth):
-        """Register a new node in the swarm"""
-        self.nodes[node_id] = initial_health
-        self.logger.info(f"Node {node_id} registered with initial health: {initial_health}")
+    def _initialize_quality_model(self) -> RandomForestClassifier:
+        """Initialize ML model for quality severity classification"""
+        model = RandomForestClassifier(n_estimators=100)
+        # Pre-trained weights could be loaded here
+        return model
 
-    async def update_node_health(self, node_id: str, health: NodeHealth):
-        """Update health metrics for a node"""
-        if node_id in self.nodes:
-            self.nodes[node_id] = health
-            await self._check_rebalancing_needed(node_id)
+    def analyze_code_quality(self, metrics: CodeQualityMetrics) -> Dict[str, any]:
+        """Analyze code quality metrics and determine governance actions"""
+        features = np.array([
+            metrics.complexity,
+            metrics.test_coverage,
+            metrics.duplication,
+            metrics.bug_density,
+            metrics.security_score
+        ]).reshape(1, -1)
 
-    async def _check_rebalancing_needed(self, node_id: str):
-        """Check if workload rebalancing is needed based on node health"""
-        node = self.nodes[node_id]
+        severity_score = self._quality_model.predict_proba(features)[0]
+        severity_level = self._classify_severity(severity_score)
+
+        governance_actions = self._determine_governance_actions(severity_level)
+
+        return {
+            'severity_level': severity_level,
+            'severity_score': float(severity_score.max()),
+            'governance_actions': governance_actions,
+            'metrics': metrics.__dict__
+        }
+
+    def _classify_severity(self, severity_score: np.ndarray) -> str:
+        """Classify severity level based on model prediction"""
+        max_score = severity_score.max()
         
-        # Define health thresholds
-        CPU_THRESHOLD = 80.0
-        MEMORY_THRESHOLD = 85.0
+        if max_score >= self._quality_thresholds['critical']:
+            return 'critical'
+        elif max_score >= self._quality_thresholds['high']:
+            return 'high'
+        elif max_score >= self._quality_thresholds['medium']:
+            return 'medium'
+        return 'low'
 
-        if node.cpu_usage > CPU_THRESHOLD or node.memory_usage > MEMORY_THRESHOLD:
-            await self._rebalance_workload(node_id)
+    def _determine_governance_actions(self, severity: str) -> List[str]:
+        """Determine required governance actions based on severity"""
+        actions = {
+            'critical': [
+                'block_merge',
+                'notify_team',
+                'schedule_review',
+                'require_fixes'
+            ],
+            'high': [
+                'require_review',
+                'notify_owner',
+                'suggest_fixes'
+            ],
+            'medium': [
+                'flag_for_review',
+                'suggest_improvements'
+            ],
+            'low': [
+                'log_metrics'
+            ]
+        }
+        return actions.get(severity, [])
 
-    async def _rebalance_workload(self, overloaded_node_id: str):
-        """Redistribute tasks from overloaded node to healthier nodes"""
-        tasks_to_move = [t for t in self.tasks if t.assigned_node == overloaded_node_id]
-        healthy_nodes = [
-            (node_id, health) 
-            for node_id, health in self.nodes.items()
-            if health.cpu_usage < 70 and health.memory_usage < 75
-        ]
+    def update_quality_model(self, training_data: List[Dict]):
+        """Update the quality classification model with new training data"""
+        try:
+            X = np.array([list(d['metrics'].values()) for d in training_data])
+            y = np.array([d['severity_level'] for d in training_data])
+            self._quality_model.fit(X, y)
+            self.logger.info('Successfully updated quality classification model')
+        except Exception as e:
+            self.logger.error(f'Failed to update quality model: {str(e)}')
 
-        if not healthy_nodes:
-            self.logger.warning("No healthy nodes available for rebalancing")
-            return
-
-        for task in tasks_to_move:
-            # Find best node for task based on current load
-            best_node = min(healthy_nodes, key=lambda x: x[1].cpu_usage)
-            task.assigned_node = best_node[0]
-            self.logger.info(
-                f"Rebalancing: Moving task {task.id} from {overloaded_node_id} "
-                f"to {best_node[0]}"
-            )
-
-    async def health_monitor_loop(self):
-        """Continuous health monitoring loop"""
-        while True:
-            try:
-                # Check for inactive nodes
-                current_time = datetime.now()
-                inactive_nodes = [
-                    node_id for node_id, health in self.nodes.items()
-                    if (current_time - health.last_heartbeat).seconds > 60
-                ]
-
-                # Remove inactive nodes and reassign their tasks
-                for node_id in inactive_nodes:
-                    self.logger.warning(f"Node {node_id} appears to be inactive, removing")
-                    del self.nodes[node_id]
-                    await self._reassign_tasks_from_node(node_id)
-
-                await asyncio.sleep(self.health_check_interval)
-
-            except Exception as e:
-                self.logger.error(f"Error in health monitor loop: {e}")
-                await asyncio.sleep(5)  # Brief pause before retry
-
-    async def _reassign_tasks_from_node(self, failed_node_id: str):
-        """Reassign tasks from a failed node to other healthy nodes"""
-        orphaned_tasks = [t for t in self.tasks if t.assigned_node == failed_node_id]
+    def adjust_thresholds(self, new_thresholds: Dict[str, float]):
+        """Adjust severity classification thresholds"""
+        for level, threshold in new_thresholds.items():
+            if level in self._quality_thresholds:
+                self._quality_thresholds[level] = threshold
         
-        if not orphaned_tasks:
-            return
+        self.logger.info('Updated severity classification thresholds')
 
-        available_nodes = list(self.nodes.items())
-        if not available_nodes:
-            self.logger.error("No available nodes to reassign tasks")
-            return
-
-        # Sort tasks by priority
-        orphaned_tasks.sort(key=lambda x: x.priority, reverse=True)
-
-        for task in orphaned_tasks:
-            # Find least loaded node
-            best_node = min(available_nodes, key=lambda x: x[1].active_tasks)
-            task.assigned_node = best_node[0]
-            self.logger.info(
-                f"Reassigned task {task.id} from failed node {failed_node_id} "
-                f"to {best_node[0]}"
-            )
-
-    async def start(self):
-        """Start the orchestrator"""
-        self.logger.info("Starting Decentralized Governance Orchestrator")
-        await asyncio.gather(
-            self.health_monitor_loop()
-        )
+    def get_current_thresholds(self) -> Dict[str, float]:
+        """Get current severity classification thresholds"""
+        return self._quality_thresholds.copy()
