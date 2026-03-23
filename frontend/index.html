@@ -3,126 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevFlowAI - Level Up Your Development!</title>
+    <title>DevFlowAI - Level Up Your Dev Game!</title>
     <style>
-        :root { --primary: #6C63FF; --success: #00C853; }
-        body { font-family: system-ui; margin: 0; background: #fafafa; }
-        .achievement-popup {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            animation: slideIn 0.3s ease-out;
-            z-index: 1000;
-        }
-        .streak-counter {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--primary);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-        }
-        .achievement-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #f0f0f0;
-            padding: 8px 16px;
-            border-radius: 20px;
-            margin: 4px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .achievement-badge:hover { transform: scale(1.05); }
-        @keyframes slideIn { from {transform: translateX(100%);} to {transform: translateX(0);} }
-        .share-button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
-        }
-        .share-button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(108,99,255,0.2); }
+        :root { --primary: #6d28d9; --secondary: #4c1d95; }
+        body { font-family: system-ui; margin: 0; background: #0f172a; color: white; }
+        .navbar { background: var(--primary); padding: 1rem; display: flex; justify-content: space-between; }
+        .streak-container { background: var(--secondary); padding: 1rem; border-radius: 12px; margin: 1rem; animation: pulse 2s infinite; }
+        .achievements { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; padding: 1rem; }
+        .achievement-card { background: rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem; text-align: center; cursor: pointer; transition: transform 0.2s; }
+        .achievement-card:hover { transform: scale(1.05); }
+        .leaderboard { background: rgba(255,255,255,0.05); margin: 1rem; padding: 1rem; border-radius: 12px; }
+        .share-button { background: #22c55e; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(109,40,217,0.4); } 70% { box-shadow: 0 0 0 10px rgba(109,40,217,0); } 100% { box-shadow: 0 0 0 0 rgba(109,40,217,0); } }
     </style>
 </head>
 <body>
-    <div class="streak-counter">🔥 <span id="streak-days">0</span> Day Streak!</div>
-    
-    <div id="achievements-showcase">
-        <h2>Your Achievements</h2>
-        <div class="achievement-badge">🚀 First Deploy</div>
-        <div class="achievement-badge">💫 Code Wizard</div>
-        <div class="achievement-badge">🏆 Top Contributor</div>
+    <div class="navbar">
+        <h1>DevFlowAI</h1>
+        <div class="user-profile">
+            <span class="level">Level 23</span>
+            <img src="https://api.dicebear.com/6.x/avatars/svg?seed=user123" width="40" height="40" style="border-radius: 50%;">
+        </div>
     </div>
 
-    <button class="share-button" onclick="shareAchievement()">Share Your Progress! 🚀</button>
+    <div class="streak-container">
+        <h2>🔥 21 Day Streak!</h2>
+        <p>You're in the top 5% of developers! Keep going!</p>
+        <button class="share-button" onclick="shareAchievement()">Share on Twitter</button>
+    </div>
+
+    <div class="achievements">
+        <div class="achievement-card">
+            <h3>🚀 Speed Demon</h3>
+            <p>Completed 5 tasks in under 10 minutes</p>
+            <div class="progress">Progress: 4/5</div>
+        </div>
+        <div class="achievement-card">
+            <h3>🌟 Code Master</h3>
+            <p>Earned 1000 reputation points</p>
+            <div class="progress">Progress: 850/1000</div>
+        </div>
+        <div class="achievement-card">
+            <h3>🏆 Team Player</h3>
+            <p>Helped 50 other developers</p>
+            <div class="progress">Progress: 48/50</div>
+        </div>
+    </div>
+
+    <div class="leaderboard">
+        <h2>🏅 Global Rankings</h2>
+        <div class="leaderboard-entry">
+            <img src="https://api.dicebear.com/6.x/avatars/svg?seed=top1" width="30" height="30">
+            <span>@codewizard - 2,543 points</span>
+        </div>
+        <div class="leaderboard-entry" style="background: rgba(109,40,217,0.2); padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px;">
+            <img src="https://api.dicebear.com/6.x/avatars/svg?seed=user123" width="30" height="30">
+            <span>You - 2,342 points</span>
+            <span style="color: #22c55e">↑ 3 spots today!</span>
+        </div>
+    </div>
 
     <script>
-        let streak = localStorage.getItem('streak') || 0;
-        let lastLogin = localStorage.getItem('lastLogin');
-        const today = new Date().toDateString();
-
-        if (lastLogin !== today) {
-            if (isConsecutiveDay(lastLogin)) {
-                streak++;
-                showAchievementPopup('🔥 Streak Extended!', `${streak} days and counting!`);
-            } else {
-                streak = 1;
-            }
-            localStorage.setItem('streak', streak);
-            localStorage.setItem('lastLogin', today);
-        }
-
-        document.getElementById('streak-days').textContent = streak;
-
-        function isConsecutiveDay(lastLogin) {
-            if (!lastLogin) return false;
-            const last = new Date(lastLogin);
-            const now = new Date();
-            const diffTime = Math.abs(now - last);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays === 1;
-        }
-
-        function showAchievementPopup(title, message) {
-            const popup = document.createElement('div');
-            popup.className = 'achievement-popup';
-            popup.innerHTML = `<h3>🎉 ${title}</h3><p>${message}</p>`;
-            document.body.appendChild(popup);
-            setTimeout(() => popup.remove(), 3000);
-        }
-
         function shareAchievement() {
-            const shareText = `🚀 I'm on a ${streak}-day streak with DevFlowAI! Join me in leveling up your development game! #DevFlowAI #CodingStreak`;
-            if (navigator.share) {
-                navigator.share({
-                    title: 'My DevFlowAI Achievement',
-                    text: shareText,
-                    url: window.location.href
-                });
-            } else {
-                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`);
-            }
+            const text = "🔥 Just hit a 21 day streak on DevFlowAI! Join me in leveling up your dev game! #DevFlowAI #coding";
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
         }
 
         // Gamification hooks
         setInterval(() => {
-            const randomTips = [
-                '💡 Pro tip: Commit daily to maintain your streak!',
-                '🎯 You\'re close to unlocking a new achievement!',
-                '🌟 Share your progress to inspire others!'
-            ];
-            showAchievementPopup('Quick Tip', randomTips[Math.floor(Math.random() * randomTips.length)]);
-        }, 300000); // Show tips every 5 minutes
+            const random = Math.random();
+            if(random > 0.7) {
+                showAchievement();
+            }
+        }, 300000);
+
+        function showAchievement() {
+            const notification = document.createElement('div');
+            notification.style = `position: fixed; bottom: 20px; right: 20px; background: var(--primary); padding: 1rem; border-radius: 8px; animation: slideIn 0.3s;`;
+            notification.innerHTML = `🎉 New Achievement Unlocked!<br>Quick Learner: Used AI assistance 3 times today`;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 5000);
+        }
     </script>
 </body>
 </html>
