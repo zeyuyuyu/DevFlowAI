@@ -3,213 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DiffGuardian - Smart Diff Analysis</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <title>DevFlowAI - Level Up Your Development!</title>
     <style>
-        :root {
-            --primary: #6366f1;
-            --secondary: #4f46e5;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --background: #f8fafc;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background: var(--background);
-            color: #1e293b;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .logo svg {
-            width: 32px;
-            height: 32px;
-        }
-
-        .diff-container {
+        :root { --primary: #6C63FF; --success: #00C853; }
+        body { font-family: system-ui; margin: 0; background: #fafafa; }
+        .achievement-popup {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
             background: white;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            overflow: hidden;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease-out;
+            z-index: 1000;
         }
-
-        .diff-header {
-            padding: 1rem;
-            background: #f1f5f9;
-            border-bottom: 1px solid #e2e8f0;
+        .streak-counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
         }
-
-        .diff-content {
-            padding: 1rem;
-        }
-
-        .diff-line {
-            display: flex;
-            padding: 0.25rem 0;
-            font-family: monospace;
-            transition: background 0.2s;
-        }
-
-        .diff-line:hover {
-            background: #f8fafc;
-        }
-
-        .line-number {
-            color: #94a3b8;
-            padding: 0 1rem;
-            user-select: none;
-        }
-
-        .line-content {
-            flex: 1;
-        }
-
-        .addition {
-            background: #dcfce7;
-        }
-
-        .deletion {
-            background: #fee2e2;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        .achievement-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f0f0f0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin: 4px;
+            cursor: pointer;
             transition: transform 0.2s;
         }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
+        .achievement-badge:hover { transform: scale(1.05); }
+        @keyframes slideIn { from {transform: translateX(100%);} to {transform: translateX(0);} }
+        .share-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
         }
-
-        .stat-title {
-            color: #64748b;
-            font-size: 0.875rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
+        .share-button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(108,99,255,0.2); }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <div class="logo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 4v16m-8-8h16" stroke-linecap="round"/>
-                </svg>
-                DiffGuardian
-            </div>
-        </header>
-
-        <div class="stats">
-            <div class="stat-card pulse">
-                <div class="stat-title">Files Analyzed</div>
-                <div class="stat-value">128</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-title">Lines Changed</div>
-                <div class="stat-value">1,234</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-title">Issues Found</div>
-                <div class="stat-value">7</div>
-            </div>
-        </div>
-
-        <div class="diff-container">
-            <div class="diff-header">
-                <strong>main.py</strong> - Last updated 2 hours ago
-            </div>
-            <div class="diff-content">
-                <div class="diff-line">
-                    <span class="line-number">1</span>
-                    <span class="line-content">def analyze_diff(file_path):</span>
-                </div>
-                <div class="diff-line addition">
-                    <span class="line-number">2</span>
-                    <span class="line-content">    # New optimization added</span>
-                </div>
-                <div class="diff-line addition">
-                    <span class="line-number">3</span>
-                    <span class="line-content">    cache = {}</span>
-                </div>
-                <div class="diff-line deletion">
-                    <span class="line-number">4</span>
-                    <span class="line-content">    # Old implementation removed</span>
-                </div>
-            </div>
-        </div>
+    <div class="streak-counter">🔥 <span id="streak-days">0</span> Day Streak!</div>
+    
+    <div id="achievements-showcase">
+        <h2>Your Achievements</h2>
+        <div class="achievement-badge">🚀 First Deploy</div>
+        <div class="achievement-badge">💫 Code Wizard</div>
+        <div class="achievement-badge">🏆 Top Contributor</div>
     </div>
 
-    <script>
-        // Add interactive features
-        document.querySelectorAll('.diff-line').forEach(line => {
-            line.addEventListener('click', () => {
-                line.style.backgroundColor = '#e0e7ff';
-                setTimeout(() => {
-                    line.style.backgroundColor = '';
-                }, 1000);
-            });
-        });
+    <button class="share-button" onclick="shareAchievement()">Share Your Progress! 🚀</button>
 
-        // Update stats periodically
+    <script>
+        let streak = localStorage.getItem('streak') || 0;
+        let lastLogin = localStorage.getItem('lastLogin');
+        const today = new Date().toDateString();
+
+        if (lastLogin !== today) {
+            if (isConsecutiveDay(lastLogin)) {
+                streak++;
+                showAchievementPopup('🔥 Streak Extended!', `${streak} days and counting!`);
+            } else {
+                streak = 1;
+            }
+            localStorage.setItem('streak', streak);
+            localStorage.setItem('lastLogin', today);
+        }
+
+        document.getElementById('streak-days').textContent = streak;
+
+        function isConsecutiveDay(lastLogin) {
+            if (!lastLogin) return false;
+            const last = new Date(lastLogin);
+            const now = new Date();
+            const diffTime = Math.abs(now - last);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays === 1;
+        }
+
+        function showAchievementPopup(title, message) {
+            const popup = document.createElement('div');
+            popup.className = 'achievement-popup';
+            popup.innerHTML = `<h3>🎉 ${title}</h3><p>${message}</p>`;
+            document.body.appendChild(popup);
+            setTimeout(() => popup.remove(), 3000);
+        }
+
+        function shareAchievement() {
+            const shareText = `🚀 I'm on a ${streak}-day streak with DevFlowAI! Join me in leveling up your development game! #DevFlowAI #CodingStreak`;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My DevFlowAI Achievement',
+                    text: shareText,
+                    url: window.location.href
+                });
+            } else {
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`);
+            }
+        }
+
+        // Gamification hooks
         setInterval(() => {
-            document.querySelectorAll('.stat-value').forEach(stat => {
-                const current = parseInt(stat.textContent.replace(/,/g, ''));
-                stat.textContent = (current + Math.floor(Math.random() * 10)).toLocaleString();
-            });
-        }, 5000);
+            const randomTips = [
+                '💡 Pro tip: Commit daily to maintain your streak!',
+                '🎯 You\'re close to unlocking a new achievement!',
+                '🌟 Share your progress to inspire others!'
+            ];
+            showAchievementPopup('Quick Tip', randomTips[Math.floor(Math.random() * randomTips.length)]);
+        }, 300000); // Show tips every 5 minutes
     </script>
 </body>
 </html>
