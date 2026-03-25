@@ -4,86 +4,113 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DevFlowAI - Level Up Your Dev Game!</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        :root { --primary: #6d28d9; --secondary: #4c1d95; }
-        body { font-family: system-ui; margin: 0; background: #0f172a; color: white; }
-        .navbar { background: var(--primary); padding: 1rem; display: flex; justify-content: space-between; }
-        .streak-container { background: var(--secondary); padding: 1rem; border-radius: 12px; margin: 1rem; animation: pulse 2s infinite; }
-        .achievements { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; padding: 1rem; }
-        .achievement-card { background: rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem; text-align: center; cursor: pointer; transition: transform 0.2s; }
-        .achievement-card:hover { transform: scale(1.05); }
-        .leaderboard { background: rgba(255,255,255,0.05); margin: 1rem; padding: 1rem; border-radius: 12px; }
-        .share-button { background: #22c55e; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(109,40,217,0.4); } 70% { box-shadow: 0 0 0 10px rgba(109,40,217,0); } 100% { box-shadow: 0 0 0 0 rgba(109,40,217,0); } }
+        @keyframes levelUp {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .achievement-unlocked {
+            animation: levelUp 0.5s ease-in-out;
+        }
     </style>
 </head>
-<body>
-    <div class="navbar">
-        <h1>DevFlowAI</h1>
-        <div class="user-profile">
-            <span class="level">Level 23</span>
-            <img src="https://api.dicebear.com/6.x/avatars/svg?seed=user123" width="40" height="40" style="border-radius: 50%;">
+<body class="bg-gray-900 text-white">
+    <div class="fixed top-0 right-0 m-4 flex items-center space-x-4">
+        <div class="relative group">
+            <div class="flex items-center space-x-2 bg-purple-800 rounded-lg px-4 py-2 cursor-pointer">
+                <span class="text-yellow-400">Level</span>
+                <span id="userLevel" class="text-2xl font-bold">1</span>
+            </div>
+            <div class="hidden group-hover:block absolute right-0 w-64 mt-2 bg-purple-900 rounded-lg p-4 shadow-xl">
+                <div class="text-sm">Next reward at Level 2:</div>
+                <div class="text-yellow-400">🌟 Exclusive AI Power-Up!</div>
+            </div>
+        </div>
+        <div class="bg-purple-800 rounded-lg px-4 py-2">
+            <span>⚡</span>
+            <span id="powerPoints" class="font-bold">0</span>
         </div>
     </div>
 
-    <div class="streak-container">
-        <h2>🔥 21 Day Streak!</h2>
-        <p>You're in the top 5% of developers! Keep going!</p>
-        <button class="share-button" onclick="shareAchievement()">Share on Twitter</button>
-    </div>
-
-    <div class="achievements">
-        <div class="achievement-card">
-            <h3>🚀 Speed Demon</h3>
-            <p>Completed 5 tasks in under 10 minutes</p>
-            <div class="progress">Progress: 4/5</div>
-        </div>
-        <div class="achievement-card">
-            <h3>🌟 Code Master</h3>
-            <p>Earned 1000 reputation points</p>
-            <div class="progress">Progress: 850/1000</div>
-        </div>
-        <div class="achievement-card">
-            <h3>🏆 Team Player</h3>
-            <p>Helped 50 other developers</p>
-            <div class="progress">Progress: 48/50</div>
+    <div class="fixed bottom-0 left-0 right-0 bg-purple-800 p-4">
+        <div class="container mx-auto">
+            <div class="flex justify-between items-center">
+                <div class="flex space-x-4">
+                    <button onclick="shareAchievement()" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg flex items-center space-x-2">
+                        <span>🎯</span>
+                        <span>Share Achievement</span>
+                    </button>
+                    <button onclick="challengeFriend()" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg flex items-center space-x-2">
+                        <span>⚔️</span>
+                        <span>Challenge Friend</span>
+                    </button>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-yellow-400">Daily Streak:</span>
+                    <span id="streak" class="font-bold">🔥 3</span>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="leaderboard">
-        <h2>🏅 Global Rankings</h2>
-        <div class="leaderboard-entry">
-            <img src="https://api.dicebear.com/6.x/avatars/svg?seed=top1" width="30" height="30">
-            <span>@codewizard - 2,543 points</span>
+    <div class="container mx-auto px-4 py-16">
+        <div id="achievements" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Dynamic Achievement Cards -->
         </div>
-        <div class="leaderboard-entry" style="background: rgba(109,40,217,0.2); padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px;">
-            <img src="https://api.dicebear.com/6.x/avatars/svg?seed=user123" width="30" height="30">
-            <span>You - 2,342 points</span>
-            <span style="color: #22c55e">↑ 3 spots today!</span>
+    </div>
+
+    <div id="levelUpModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-purple-900 p-8 rounded-xl text-center">
+            <h2 class="text-3xl font-bold mb-4">🎉 Level Up!</h2>
+            <p class="text-xl mb-4">You've reached Level <span id="newLevel">2</span>!</p>
+            <button onclick="closeModal()" class="bg-yellow-400 text-purple-900 px-6 py-2 rounded-lg font-bold">Claim Reward</button>
         </div>
     </div>
 
     <script>
-        function shareAchievement() {
-            const text = "🔥 Just hit a 21 day streak on DevFlowAI! Join me in leveling up your dev game! #DevFlowAI #coding";
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
+        let powerPoints = 0;
+        let level = 1;
+
+        function addPoints(points) {
+            powerPoints += points;
+            document.getElementById('powerPoints').textContent = powerPoints;
+            checkLevelUp();
         }
 
-        // Gamification hooks
-        setInterval(() => {
-            const random = Math.random();
-            if(random > 0.7) {
-                showAchievement();
+        function checkLevelUp() {
+            if (powerPoints >= level * 100) {
+                level++;
+                document.getElementById('userLevel').textContent = level;
+                document.getElementById('newLevel').textContent = level;
+                document.getElementById('levelUpModal').classList.remove('hidden');
             }
-        }, 300000);
-
-        function showAchievement() {
-            const notification = document.createElement('div');
-            notification.style = `position: fixed; bottom: 20px; right: 20px; background: var(--primary); padding: 1rem; border-radius: 8px; animation: slideIn 0.3s;`;
-            notification.innerHTML = `🎉 New Achievement Unlocked!<br>Quick Learner: Used AI assistance 3 times today`;
-            document.body.appendChild(notification);
-            setTimeout(() => notification.remove(), 5000);
         }
+
+        function closeModal() {
+            document.getElementById('levelUpModal').classList.add('hidden');
+        }
+
+        function shareAchievement() {
+            // Social share implementation
+            const text = `I just reached Level ${level} on DevFlowAI! Can you beat my score? 🚀`;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'DevFlowAI Achievement',
+                    text: text,
+                    url: window.location.href
+                });
+            }
+        }
+
+        function challengeFriend() {
+            // Implement friend challenge system
+            alert('Challenge sent to your friends! First one to complete wins extra power points! 🏆');
+        }
+
+        // Add points every time user interacts with main features
+        setInterval(() => addPoints(1), 30000); // Passive points gain
     </script>
 </body>
 </html>
